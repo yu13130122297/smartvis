@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
+import { ChartRenderer } from "./smart-viz";
 import { useDataStream } from "./data-stream-provider";
 import { DocumentToolResult } from "./document";
 import { DocumentPreview } from "./document-preview";
@@ -339,6 +340,80 @@ const PurePreviewMessage = ({
                     )}
                   </ToolContent>
                 </Tool>
+              );
+            }
+
+            if (type === "tool-generateChart") {
+              const { toolCallId, state } = part;
+              const widthClass = "w-full";
+
+              // Tool execution in progress - show Tool UI with loading content
+              if (state === "input-streaming" || state === "input-available") {
+                const partialArgs = (state === "input-available" ? part.input : {}) as { rawOptionString?: string; agentTrace?: string };
+                return (
+                  <div className={widthClass} key={toolCallId}>
+                    <Tool className="w-full" defaultOpen={true}>
+                      <ToolHeader state={state} type="tool-generateChart" />
+                      <ToolContent>
+                        <div className="flex items-center gap-3 p-4">
+                          <svg className="animate-spin h-5 w-5 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span className="text-sm text-muted-foreground">
+                            AI Agent [{partialArgs?.agentTrace || 'ChartRenderer'}] 正在分析数据...
+                          </span>
+                        </div>
+                      </ToolContent>
+                    </Tool>
+                  </div>
+                );
+              }
+
+              // Tool execution completed - render the chart
+              if (state === "output-available") {
+                const output = part.output as { rawOptionString: string; agentTrace: string };
+                return (
+                  <div className={widthClass} key={toolCallId}>
+                    <ChartRenderer
+                      rawOptionString={output.rawOptionString}
+                      agentTrace={output.agentTrace || 'ChartRenderer'}
+                    />
+                  </div>
+                );
+              }
+
+              // Error state
+              if (state === "output-error") {
+                return (
+                  <div className={widthClass} key={toolCallId}>
+                    <Tool className="w-full" defaultOpen={true}>
+                      <ToolHeader state={state} type="tool-generateChart" />
+                      <ToolContent>
+                        <div className="p-4 text-red-600 dark:text-red-400">
+                          <div className="flex items-start gap-2">
+                            <svg className="h-5 w-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                              <div className="font-medium text-sm">图表生成失败</div>
+                              <div className="text-sm mt-1 opacity-90">请重试或修改您的请求</div>
+                            </div>
+                          </div>
+                        </div>
+                      </ToolContent>
+                    </Tool>
+                  </div>
+                );
+              }
+
+              // Fallback for other states
+              return (
+                <div className={widthClass} key={toolCallId}>
+                  <Tool className="w-full" defaultOpen={true}>
+                    <ToolHeader state={state} type="tool-generateChart" />
+                  </Tool>
+                </div>
               );
             }
 
