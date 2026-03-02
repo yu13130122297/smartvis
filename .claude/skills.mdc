@@ -1,0 +1,526 @@
+# Smart-Viz 开发技能与规范
+
+本文档记录 Smart-Viz 项目开发过程中的核心技能、最佳实践和文档同步规范。
+
+---
+
+## 🎯 项目核心技能
+
+### 1. 智能数据可视化 (Data Visualization)
+
+**核心能力**：
+- 自然语言生成 ECharts 图表配置
+- AI 配置自动修复
+- 三层容错机制设计
+- Web Worker 后台数据处理
+- 流式加载状态管理
+
+**关键技术点**：
+```typescript
+// 工具定义模式 (lib/ai/tools/generate-chart.ts)
+export const generateChart = tool({
+  description: "清晰的工具描述",
+  inputSchema: z.object({
+    // 使用 .default() 而不是 .optional() 避免 DeepSeek Schema 错误
+    field: z.string().default("default-value").describe("字段描述"),
+  }),
+  execute: async ({ field }) => {
+    // 验证逻辑
+    // 修复逻辑（可选）
+    // 返回结果
+  },
+});
+```
+
+**常见陷阱**：
+- ❌ 使用 `.optional()` 会导致 DeepSeek API Schema 错误
+- ✅ 使用 `.default()` 提供默认值
+- ✅ 确保所有字段都有合理的默认值
+
+---
+
+### 2. Web Worker 容错管线
+
+**三层容错架构**：
+
+```javascript
+// Layer 1: Web Worker (public/json-worker.js)
+try {
+  // 直接解析
+  return JSON.parse(cleanedString);
+} catch {
+  // 清洗后重试
+  // 正则提取
+  // Function 构造器
+}
+
+// Layer 2: 主线程降级 (components/smart-viz/ChartRenderer.tsx)
+worker.onerror = () => {
+  const parsedOption = JSON.parse(cleanedString);
+  setOption(parsedOption);
+};
+
+// Layer 3: Error Boundary
+{error && <div>兜底 UI</div>}
+```
+
+**最佳实践**：
+- Worker 中不使用外部 ESM 模块（兼容性问题）
+- 实现内置的 JSON 清洗逻辑
+- 提供详细的控制台日志用于调试
+
+---
+
+### 3. AI 智能体编排
+
+**多智能体协作模式**：
+
+```typescript
+// 生成智能体 → 修复智能体
+const generateResult = await generateChart({ rawOptionString });
+if (!isValid(generateResult)) {
+  const fixResult = await fixChartOption({ rawOptionString });
+  return fixResult;
+}
+```
+
+**工作流设计**：
+- 使用 LangGraph 编排复杂智能体
+- 每个智能体专注单一职责
+- 清晰的输入输出契约
+
+---
+
+### 4. 类型安全
+
+**TypeScript 最佳实践**：
+
+```typescript
+// ✅ 好的实践
+export type GenerateChartOutput = {
+  rawOptionString: string;
+  agentTrace: string;
+  fixApplied?: boolean;  // 可选字段
+};
+
+// ✅ 使用工具的 output 类型推导
+const result = await generateChart({ ... });
+// result 类型自动推导为 GenerateChartOutput
+
+// ❌ 避免使用 any
+const data: any = await fetch(...);
+
+// ✅ 使用泛型
+async function fetchData<T>(url: string): Promise<T> {
+  const response = await fetch(url);
+  return response.json();
+}
+```
+
+---
+
+### 5. React 组件设计
+
+**ChartRenderer 组件模式**：
+
+```tsx
+export function ChartRenderer({ rawOptionString, agentTrace }: Props) {
+  const [option, setOption] = useState<EChartsOption | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Web Worker 初始化
+  useEffect(() => {
+    const worker = new Worker("/json-worker.js");
+    worker.onmessage = (e) => {
+      if (e.data.success) {
+        setOption(e.data.data);
+        setError(null);
+        setIsLoading(false);
+      } else {
+        setError(e.data.error);
+        setIsLoading(false);
+      }
+    };
+    return () => worker.terminate();
+  }, []);
+
+  // 数据发送
+  useEffect(() => {
+    if (rawOptionString && workerRef.current) {
+      workerRef.current.postMessage({ rawData: rawOptionString });
+    }
+  }, [rawOptionString]);
+
+  // 渲染逻辑
+  if (isLoading) return <LoadingState />;
+  if (error) return <ErrorState error={error} />;
+  if (!option) return null;
+
+  return <ReactECharts option={option} />;
+}
+```
+
+**关键点**：
+- 使用 `useEffect` 管理 Worker 生命周期
+- 清理副作用：`worker.terminate()`
+- 状态驱动渲染（loading → error → success）
+- 提供降级处理
+
+---
+
+## 📝 文档同步规范
+
+### 每次新增代码必须同步更新以下文档：
+
+#### 1. DIFF_FROM_VERCEL_TEMPLATE.md
+
+**更新触发条件**：
+- ✅ 新增文件（任何类型文件）
+- ✅ 修改现有核心文件
+- ✅ 新增依赖包
+- ✅ 重大功能变更
+- ✅ 架构调整
+
+**更新内容**：
+
+1. **顶部目录结构**（如果新增文件）
+   ```markdown
+   ## 📁 总体新增文件目录结构
+   
+   ```
+   smart-viz/
+   ├── 🆕 新增的文件路径
+   └── ...
+   ```
+   ```
+
+2. **新增功能说明**（如果新功能）
+   ```markdown
+   ## 🆕 新增功能
+   
+   ### N. 新功能名称
+   
+   **功能描述**：...
+   **示例输入**：...
+   **核心文件**：...
+   **特性**：...
+   ```
+
+3. **新增文件清单**（根据文件类型）
+   - AI 工具 → "AI 工具和工作流"
+   - 组件 → "前端组件"
+   - 配置文件 → "配置文件"
+   - 工具脚本 → "工具脚本"
+
+4. **修改的文件**（如果修改）
+   ```markdown
+   ## 🔧 修改的文件
+   
+   ### N. `文件路径`
+   
+   **修改内容**：...
+   **修改前**：...
+   **修改后**：...
+   ```
+
+5. **新增依赖包**（如果新增）
+   ```markdown
+   ### X. 相关依赖
+   
+   | 包名 | 版本 | 用途 |
+   |------|------|------|
+   | `package-name` | ^1.0.0 | 说明 |
+   ```
+
+6. **架构改进**（如果有架构变化）
+   ```markdown
+   ## 🏗️ 架构改进
+   
+   ### 新增架构
+   ...
+   
+   **核心改进**：
+   1. ...
+   ```
+
+---
+
+#### 2. PROJECT_README.md
+
+**更新触发条件**：
+- ✅ 新功能发布
+- ✅ 重要 Bug 修复
+- ✅ API 变更
+- ✅ 配置要求变更
+
+**更新内容**：
+
+1. **核心特性**（如果新功能）
+   ```markdown
+   #### 📊 智能XXX功能
+   
+   **功能描述**：...
+   **示例输入**：...
+   ```
+
+2. **核心功能详解**（新增章节）
+   ```markdown
+   ### N. 新功能名称 (function-name)
+   
+   **功能描述**：...
+   **输入**：...
+   **流程**：...
+   **文件位置**：...
+   ```
+
+3. **项目结构**（如果新增文件）
+   ```markdown
+   ```
+   smart-viz/
+   ├── 新增目录/
+   │   └── 新增文件
+   ...
+   ```
+   ```
+
+4. **使用指南**（如果用户可用的新功能）
+   ```markdown
+   ### 使用新功能
+   
+   ```
+   示例输入
+   ```
+   ```
+
+5. **故障排除**（如果新问题）
+   ```markdown
+   ### 问题 N: 新问题
+   
+   **原因**：...
+   **解决**：...
+   ```
+
+---
+
+#### 3. skills.mdc（本文档）
+
+**更新触发条件**：
+- ✅ 新的技术模式或最佳实践
+- ✅ 重要的经验教训
+- ✅ 常见陷阱和解决方案
+- ✅ 代码规范变更
+
+**更新内容**：
+
+1. **新增技能章节**
+   ```markdown
+   ### N. 新技能名称
+   
+   **核心能力**：...
+   **关键技术点**：...
+   **常见陷阱**：...
+   ```
+
+2. **更新文档同步规范**（如果流程变更）
+   ```markdown
+   ### 每次新增代码必须同步更新以下文档：
+   
+   添加新的同步步骤...
+   ```
+
+---
+
+## 🔍 代码审查清单
+
+### 新增代码前检查
+
+- [ ] 类型定义完整（使用 TypeScript 严格模式）
+- [ ] 所有字段都有合理的默认值（避免 `.optional()`）
+- [ ] 添加详细的错误处理
+- [ ] 提供降级方案
+- [ ] 添加控制台日志用于调试
+- [ ] 遵循 Ultracite 代码规范
+- [ ] 无障碍访问（a11y）检查
+- [ ] 性能考虑（避免阻塞主线程）
+
+### 提交前检查
+
+- [ ] 运行 `pnpm lint` 检查代码质量
+- [ ] 运行 `pnpm format` 格式化代码
+- [ ] 手动测试新功能
+- [ ] 更新 DIFF_FROM_VERCEL_TEMPLATE.md
+- [ ] 更新 PROJECT_README.md（如需要）
+- [ ] 更新 skills.mdc（如需要）
+- [ ] 编写清晰的 commit message
+
+---
+
+## 🚨 常见陷阱和解决方案
+
+### 1. DeepSeek Schema 兼容性
+
+**问题**：
+```typescript
+// ❌ 错误：Schema 类型不是 object
+agentTrace: z.string().optional()
+```
+
+**解决方案**：
+```typescript
+// ✅ 正确：提供默认值
+agentTrace: z.string().default("ChartRenderer")
+```
+
+**文档位置**：`DIFF_FROM_VERCEL_TEMPLATE.md` → "修复记录"
+
+---
+
+### 2. Web Worker ESM 加载失败
+
+**问题**：
+```javascript
+// ❌ 错误：Worker 不支持 ESM 模块
+importScripts('https://cdn.jsdelivr.net/npm/jsonrepair/lib/index.js');
+```
+
+**解决方案**：
+```javascript
+// ✅ 正确：实现内置逻辑
+function cleanAndRepair(jsonString) {
+  // 清洗逻辑
+  // 修复逻辑
+  // 解析逻辑
+}
+```
+
+**文档位置**：`DIFF_FROM_VERCEL_TEMPLATE.md` → "修复记录"
+
+---
+
+### 3. 组件状态管理混乱
+
+**问题**：
+```tsx
+// ❌ 错误：状态更新时机不对
+useEffect(() => {
+  setOption(parsedData);
+}, []); // 依赖项为空
+```
+
+**解决方案**：
+```tsx
+// ✅ 正确：正确的依赖项
+useEffect(() => {
+  if (rawOptionString && workerRef.current) {
+    workerRef.current.postMessage({ rawData: rawOptionString });
+  }
+}, [rawOptionString]); // 依赖 rawOptionString
+```
+
+**文档位置**：本文档 → "React 组件设计"
+
+---
+
+### 4. 类型定义不完整
+
+**问题**：
+```typescript
+// ❌ 错误：使用 any
+const result: any = await generateChart({ ... });
+```
+
+**解决方案**：
+```typescript
+// ✅ 正确：使用类型推导
+const result = await generateChart({ ... });
+// result 类型自动推导为 GenerateChartOutput
+```
+
+**文档位置**：本文档 → "类型安全"
+
+---
+
+## 📚 相关资源
+
+### 官方文档
+- [ECharts 配置项手册](https://echarts.apache.org/zh/option.html)
+- [Vercel AI SDK 文档](https://sdk.vercel.ai/docs)
+- [Next.js 文档](https://nextjs.org/docs)
+- [TypeScript 手册](https://www.typescriptlang.org/docs/)
+
+### 项目文档
+- `PROJECT_README.md` - 项目主文档
+- `DIFF_FROM_VERCEL_TEMPLATE.md` - 差异说明
+- `docs/ARCHITECTURE.ts` - 架构设计
+
+### 开发工具
+- `pnpm lint` - Ultracite 代码检查
+- `pnpm format` - 代码格式化
+- `pnpm dev` - 开发服务器
+- `pnpm test` - E2E 测试
+
+---
+
+## 🔄 工作流程
+
+### 新功能开发流程
+
+```
+1. 分析需求 → 确定功能范围和影响范围
+    ↓
+2. 设计方案 → 确定技术方案和数据流
+    ↓
+3. 编写代码 → 遵循本文档的最佳实践
+    ↓
+4. 测试验证 → 手动测试 + 自动化测试
+    ↓
+5. 文档更新 → 
+    - DIFF_FROM_VERCEL_TEMPLATE.md
+    - PROJECT_README.md（如需要）
+    - skills.mdc（如需要）
+    ↓
+6. 代码审查 → 运行 lint 和 format
+    ↓
+7. 提交代码 → 清晰的 commit message
+```
+
+### Bug 修复流程
+
+```
+1. 定位问题 → 阅读日志、复现问题
+    ↓
+2. 分析根因 → 确定问题根本原因
+    ↓
+3. 设计修复 → 最小化修改，避免引入新问题
+    ↓
+4. 验证修复 → 确保修复有效且无副作用
+    ↓
+5. 文档更新 → 
+    - DIFF_FROM_VERCEL_TEMPLATE.md（修复记录）
+    - PROJECT_README.md（故障排除）
+    - skills.mdc（常见陷阱）
+    ↓
+6. 提交修复 → commit message 包含问题ID
+```
+
+---
+
+## ✅ 总结
+
+本文档作为 Smart-Viz 项目的技能知识库，记录：
+
+1. **核心技能**：数据可视化、AI 智能体、容错机制等
+2. **最佳实践**：代码模式、组件设计、类型安全等
+3. **文档规范**：每次代码变更必须同步更新的文档清单
+4. **常见陷阱**：已遇到的问题和解决方案
+5. **工作流程**：新功能开发和 Bug 修复的标准流程
+
+**重要提醒**：
+- 每次新增代码 → 必须更新 `DIFF_FROM_VERCEL_TEMPLATE.md`
+- 每次功能变更 → 可能需要更新 `PROJECT_README.md`
+- 每次经验积累 → 可能需要更新 `skills.mdc`
+
+---
+
+🎯 **保持文档同步，让项目易于维护和理解！**
