@@ -316,3 +316,31 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Typewriter effect for streaming content */
+.typewriter-content {
+  animation: fadeIn 0.1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Cursor blink animation */
+@keyframes cursor-blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+.streaming-cursor {
+  animation: cursor-blink 1s infinite;
+}

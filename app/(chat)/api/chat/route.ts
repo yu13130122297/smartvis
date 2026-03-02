@@ -15,6 +15,7 @@ import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { getLanguageModel } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { generateChart } from "@/lib/ai/tools/generate-chart";
+import { generateDashboard } from "@/lib/ai/tools/generate-dashboard";
 import { getWeather } from "@/lib/ai/tools/get-weather";
 import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
 import { updateDocument } from "@/lib/ai/tools/update-document";
@@ -153,6 +154,7 @@ export async function POST(request: Request) {
                 "updateDocument",
                 "requestSuggestions",
                 "generateChart",
+                "generateDashboard",
               ],
           providerOptions: isReasoningModel
             ? {
@@ -167,6 +169,7 @@ export async function POST(request: Request) {
             updateDocument: updateDocument({ session, dataStream }),
             requestSuggestions: requestSuggestions({ session, dataStream }),
             generateChart,
+            generateDashboard,
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,

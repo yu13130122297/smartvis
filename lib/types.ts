@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { ArtifactKind } from "@/components/artifact";
 import type { createDocument } from "./ai/tools/create-document";
 import type { generateChart } from "./ai/tools/generate-chart";
+import type { generateDashboard } from "./ai/tools/generate-dashboard";
 import type { getWeather } from "./ai/tools/get-weather";
 import type { requestSuggestions } from "./ai/tools/request-suggestions";
 import type { updateDocument } from "./ai/tools/update-document";
@@ -23,6 +24,7 @@ type requestSuggestionsTool = InferUITool<
   ReturnType<typeof requestSuggestions>
 >;
 type generateChartTool = InferUITool<typeof generateChart>;
+type generateDashboardTool = InferUITool<typeof generateDashboard>;
 
 export type ChatTools = {
   getWeather: weatherTool;
@@ -30,6 +32,7 @@ export type ChatTools = {
   updateDocument: updateDocumentTool;
   requestSuggestions: requestSuggestionsTool;
   generateChart: generateChartTool;
+  generateDashboard: generateDashboardTool;
 };
 
 export type CustomUIDataTypes = {

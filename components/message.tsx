@@ -4,7 +4,8 @@ import { useState } from "react";
 import type { Vote } from "@/lib/db/schema";
 import type { ChatMessage } from "@/lib/types";
 import { cn, sanitizeText } from "@/lib/utils";
-import { ChartRenderer } from "./smart-viz";
+import { ChartRenderer, DashboardRenderer } from "./smart-viz";
+import type { DashboardChart, DashboardLayout } from "./smart-viz";
 import { useDataStream } from "./data-stream-provider";
 import { DocumentToolResult } from "./document";
 import { DocumentPreview } from "./document-preview";
@@ -412,6 +413,119 @@ const PurePreviewMessage = ({
                 <div className={widthClass} key={toolCallId}>
                   <Tool className="w-full" defaultOpen={true}>
                     <ToolHeader state={state} type="tool-generateChart" />
+                  </Tool>
+                </div>
+              );
+            }
+
+            // Dashboard Tool
+            if (type === "tool-generateDashboard") {
+              const { toolCallId, state } = part;
+              const widthClass = "w-full";
+
+              // Loading state
+              if (state === "input-streaming" || state === "input-available") {
+                const partialArgs = (state === "input-available" ? part.input : {}) as {
+                  title?: string;
+                  charts?: Array<{ id: string; title: string }>;
+                };
+                return (
+                  <div className={widthClass} key={toolCallId}>
+                    <Tool className="w-full" defaultOpen={true}>
+                      <ToolHeader state={state} type="tool-generateDashboard" />
+                      <ToolContent>
+                        <div className="flex items-center gap-3 p-4">
+                          <svg
+                            className="animate-spin h-5 w-5 text-muted-foreground"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                            />
+                          </svg>
+                          <span className="text-sm text-muted-foreground">
+                            正在生成大屏: {partialArgs?.title || "加载中..."}
+                            {partialArgs?.charts && ` (${partialArgs.charts.length} 个图表)`}
+                          </span>
+                        </div>
+                      </ToolContent>
+                    </Tool>
+                  </div>
+                );
+              }
+
+              // Success state - render dashboard
+              if (state === "output-available") {
+                const output = part.output as {
+                  title: string;
+                  description?: string;
+                  layout: DashboardLayout;
+                  charts: DashboardChart[];
+                  agentTrace: string;
+                };
+                return (
+                  <div className={widthClass} key={toolCallId}>
+                    <DashboardRenderer
+                      title={output.title}
+                      description={output.description}
+                      layout={output.layout}
+                      charts={output.charts}
+                      agentTrace={output.agentTrace || "DashboardRenderer"}
+                    />
+                  </div>
+                );
+              }
+
+              // Error state
+              if (state === "output-error") {
+                return (
+                  <div className={widthClass} key={toolCallId}>
+                    <Tool className="w-full" defaultOpen={true}>
+                      <ToolHeader state={state} type="tool-generateDashboard" />
+                      <ToolContent>
+                        <div className="p-4 text-red-600 dark:text-red-400">
+                          <div className="flex items-start gap-2">
+                            <svg
+                              className="h-5 w-5 shrink-0 mt-0.5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                              />
+                            </svg>
+                            <div>
+                              <div className="font-medium text-sm">大屏生成失败</div>
+                              <div className="text-sm mt-1 opacity-90">请重试或修改您的请求</div>
+                            </div>
+                          </div>
+                        </div>
+                      </ToolContent>
+                    </Tool>
+                  </div>
+                );
+              }
+
+              // Fallback
+              return (
+                <div className={widthClass} key={toolCallId}>
+                  <Tool className="w-full" defaultOpen={true}>
+                    <ToolHeader state={state} type="tool-generateDashboard" />
                   </Tool>
                 </div>
               );

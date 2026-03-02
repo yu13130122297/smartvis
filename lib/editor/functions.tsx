@@ -1,31 +1,33 @@
 "use client";
 
-import { defaultMarkdownSerializer } from "prosemirror-markdown";
-import { DOMParser, type Node } from "prosemirror-model";
+import { defaultMarkdownParser, defaultMarkdownSerializer } from "prosemirror-markdown";
+import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
-import { renderToString } from "react-dom/server";
-
-import { Response } from "@/components/elements/response";
 
 import { documentSchema } from "./config";
 import { createSuggestionWidget, type UISuggestion } from "./suggestions";
 
-export const buildDocumentFromContent = (content: string) => {
-  const parser = DOMParser.fromSchema(documentSchema);
-  const stringFromMarkdown = renderToString(<Response>{content}</Response>);
-  const tempContainer = document.createElement("div");
-  tempContainer.innerHTML = stringFromMarkdown;
-  return parser.parse(tempContainer);
+export const buildDocumentFromContent = (content: string): ProseMirrorNode => {
+  try {
+    // Use defaultMarkdownParser directly instead of renderToString
+    const doc = defaultMarkdownParser.parse(content || "");
+    console.log("[buildDocumentFromContent] Parsed document, childCount:", doc.content.childCount);
+    return doc;
+  } catch (error) {
+    console.error("[buildDocumentFromContent] Parse error:", error);
+    // Return empty document on error
+    return documentSchema.node("doc", null, [documentSchema.node("paragraph")]);
+  }
 };
 
-export const buildContentFromDocument = (document: Node) => {
+export const buildContentFromDocument = (document: ProseMirrorNode): string => {
   return defaultMarkdownSerializer.serialize(document);
 };
 
 export const createDecorations = (
   suggestions: UISuggestion[],
   view: EditorView
-) => {
+): DecorationSet => {
   const decorations: Decoration[] = [];
 
   for (const suggestion of suggestions) {

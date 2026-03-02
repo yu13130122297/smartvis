@@ -28,11 +28,14 @@ export function DataStreamHandler() {
         mutate(unstable_serialize(getChatHistoryPaginationKey));
         continue;
       }
+      
       const artifactDefinition = artifactDefinitions.find(
         (currentArtifactDefinition) =>
           currentArtifactDefinition.kind === artifact.kind
       );
 
+      // Let the artifact definition handle stream parts first
+      // This is the primary handler for content updates like data-textDelta
       if (artifactDefinition?.onStreamPart) {
         artifactDefinition.onStreamPart({
           streamPart: delta,
@@ -41,6 +44,8 @@ export function DataStreamHandler() {
         });
       }
 
+      // Handle metadata updates (id, title, kind, clear, finish)
+      // Note: content updates (data-textDelta, data-codeDelta, etc.) are handled by onStreamPart above
       setArtifact((draftArtifact) => {
         if (!draftArtifact) {
           return { ...initialArtifactData, status: "streaming" };
@@ -80,6 +85,13 @@ export function DataStreamHandler() {
               ...draftArtifact,
               status: "idle",
             };
+
+          // Content deltas are handled by onStreamPart, don't duplicate here
+          case "data-textDelta":
+          case "data-codeDelta":
+          case "data-imageDelta":
+          case "data-sheetDelta":
+            return draftArtifact;
 
           default:
             return draftArtifact;
