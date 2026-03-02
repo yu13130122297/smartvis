@@ -378,7 +378,7 @@ export function Weather({
 
         <div className="rounded-xl bg-white/10 p-3 backdrop-blur-sm">
           <div className="mb-2 font-medium text-white/80 text-xs">
-            Hourly Forecast
+            逐小时预报
           </div>
           <div className="flex justify-between gap-1">
             {displayTimes.map((time, index) => {
@@ -397,7 +397,7 @@ export function Weather({
                   key={time}
                 >
                   <div className="font-medium text-white/70 text-xs">
-                    {index === 0 ? "Now" : format(hourTime, "ha")}
+                    {index === 0 ? "现在" : format(hourTime, "ha")}
                   </div>
 
                   <div
@@ -420,11 +420,11 @@ export function Weather({
 
         <div className="mt-2 flex justify-between text-white/60 text-xs">
           <div>
-            Sunrise:{" "}
+            日出:{" "}
             {format(new Date(weatherAtLocation.daily.sunrise[0]), "h:mm a")}
           </div>
           <div>
-            Sunset:{" "}
+            日落:{" "}
             {format(new Date(weatherAtLocation.daily.sunset[0]), "h:mm a")}
           </div>
         </div>

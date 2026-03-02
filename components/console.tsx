@@ -80,7 +80,7 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
   return consoleOutputs.length > 0 ? (
     <>
       <div
-        aria-label="Resize console"
+        aria-label="调整控制台大小"
         aria-orientation="horizontal"
         aria-valuemax={maxHeight}
         aria-valuemin={minHeight}
@@ -113,7 +113,7 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
             <div className="text-muted-foreground">
               <TerminalWindowIcon />
             </div>
-            <div>Console</div>
+            <div>控制台</div>
           </div>
           <Button
             className="size-fit p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700"
@@ -152,7 +152,7 @@ export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
                   </div>
                   <div className="text-muted-foreground">
                     {consoleOutput.status === "in_progress"
-                      ? "Initializing..."
+                      ? "初始化中..."
                       : consoleOutput.status === "loading_packages"
                         ? consoleOutput.contents.map((content) =>
                             content.type === "text" ? content.value : null

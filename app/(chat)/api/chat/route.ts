@@ -98,7 +98,7 @@ export async function POST(request: Request) {
       await saveChat({
         id,
         userId: session.user.id,
-        title: "New chat",
+        title: "新对话",
         visibility: selectedVisibilityType,
       });
       titlePromise = generateTitleFromUserMessage({ message });
@@ -223,7 +223,7 @@ export async function POST(request: Request) {
           });
         }
       },
-      onError: () => "Oops, an error occurred!",
+      onError: () => "哎呀，出错了！",
     });
 
     return createUIMessageStreamResponse({

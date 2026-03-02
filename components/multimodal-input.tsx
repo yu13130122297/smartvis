@@ -206,7 +206,7 @@ function PureMultimodalInput({
       const { error } = await response.json();
       toast.error(error);
     } catch (_error) {
-      toast.error("Failed to upload file, please try again!");
+      toast.error("文件上传失败，请重试！");
     }
   }, []);
 
@@ -276,7 +276,7 @@ function PureMultimodalInput({
         ]);
       } catch (error) {
         console.error("Error uploading pasted images:", error);
-        toast.error("Failed to upload pasted image(s)");
+        toast.error("粘贴图片上传失败");
       } finally {
         setUploadQueue([]);
       }
@@ -324,7 +324,7 @@ function PureMultimodalInput({
             return;
           }
           if (status !== "ready") {
-            toast.error("Please wait for the model to finish its response!");
+            toast.error("请等待模型完成响应！");
           } else {
             submitForm();
           }
@@ -371,7 +371,7 @@ function PureMultimodalInput({
             maxHeight={200}
             minHeight={44}
             onChange={handleInput}
-            placeholder="Send a message..."
+            placeholder="发送消息..."
             ref={textareaRef}
             rows={1}
             value={input}
@@ -482,7 +482,7 @@ function PureModelSelectorCompact({
     openai: "OpenAI",
     google: "Google",
     xai: "xAI",
-    reasoning: "Reasoning",
+    reasoning: "推理模型",
     deepseek: "DeepSeek",
   };
 
@@ -495,7 +495,7 @@ function PureModelSelectorCompact({
         </Button>
       </ModelSelectorTrigger>
       <ModelSelectorContent>
-        <ModelSelectorInput placeholder="Search models..." />
+        <ModelSelectorInput placeholder="搜索模型..." />
         <ModelSelectorList>
           {Object.entries(modelsByProvider).map(
             ([providerKey, providerModels]) => (

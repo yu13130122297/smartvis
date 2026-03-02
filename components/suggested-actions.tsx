@@ -15,10 +15,10 @@ type SuggestedActionsProps = {
 
 function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
   const suggestedActions = [
-    "What are the advantages of using Next.js?",
-    "Write code to demonstrate Dijkstra's algorithm",
-    "Help me write an essay about Silicon Valley",
-    "What is the weather in San Francisco?",
+    "帮我分析这些数据并生成图表：北京 100, 上海 200, 深圳 150, 广州 120",
+    "画一个折线图显示温度变化：周一 25°C, 周二 28°C, 周三 22°C, 周四 26°C",
+    "用饼图展示市场份额：产品A 40%, 产品B 30%, 产品C 20%, 其他 10%",
+    "生成一个柱状图，对比各季度的销售数据",
   ];
 
   return (

@@ -143,12 +143,12 @@ const ReadingLevelSelector = ({
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
 }) => {
   const LEVELS = [
-    "Elementary",
-    "Middle School",
-    "Keep current level",
-    "High School",
-    "College",
-    "Graduate",
+    "小学",
+    "初中",
+    "保持当前水平",
+    "高中",
+    "大学",
+    "研究生",
   ];
 
   const y = useMotionValue(-40 * 2);
@@ -205,7 +205,7 @@ const ReadingLevelSelector = ({
                     parts: [
                       {
                         type: "text",
-                        text: `Please adjust the reading level to ${LEVELS[currentLevel]} level.`,
+                        text: `请将阅读级别调整为${LEVELS[currentLevel]}水平。`,
                       },
                     ],
                   });

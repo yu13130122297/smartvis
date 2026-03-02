@@ -37,9 +37,9 @@ Do not update document right after creating it. Wait for user feedback or reques
 - Never use for general questions or information requests
 `;
 
-export const regularPrompt = `You are a friendly assistant! Keep your responses concise and helpful.
+export const regularPrompt = `你是一个友好的助手！请保持回答简洁且有帮助。
 
-When asked to write, create, or help with something, just do it directly. Don't ask clarifying questions unless absolutely necessary - make reasonable assumptions and proceed with the task.`;
+当被要求编写、创建或帮助某事时，直接去做。除非绝对必要，否则不要提出澄清性问题——做出合理假设并继续完成任务。请使用中文回答。`;
 
 export type RequestHints = {
   latitude: Geo["latitude"];
@@ -123,17 +123,17 @@ export const updateDocumentPrompt = (
 ${currentContent}`;
 };
 
-export const titlePrompt = `Generate a short chat title (2-5 words) summarizing the user's message.
+export const titlePrompt = `生成一个简短的对话标题（2-5个词）来概括用户的消息。
 
-Output ONLY the title text. No prefixes, no formatting.
+仅输出标题文本，不要前缀，不要格式化。请使用中文生成标题。
 
-Examples:
-- "what's the weather in nyc" → Weather in NYC
-- "help me write an essay about space" → Space Essay Help
-- "hi" → New Conversation
-- "debug my python code" → Python Debugging
+示例:
+- "纽约天气怎么样" → 纽约天气查询
+- "帮我写一篇关于太空的文章" → 太空文章撰写
+- "你好" → 新对话
+- "调试我的Python代码" → Python调试
 
-Bad outputs (never do this):
-- "# Space Essay" (no hashtags)
-- "Title: Weather" (no prefixes)
-- ""NYC Weather"" (no quotes)`;
+错误输出（不要这样做）:
+- "# 太空文章" (不要使用井号)
+- "标题: 天气" (不要加前缀)
+- ""纽约天气"" (不要加引号)`;

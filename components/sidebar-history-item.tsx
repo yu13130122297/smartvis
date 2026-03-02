@@ -57,7 +57,7 @@ const PureChatItem = ({
             showOnHover={!isActive}
           >
             <MoreHorizontalIcon />
-            <span className="sr-only">More</span>
+            <span className="sr-only">更多</span>
           </SidebarMenuAction>
         </DropdownMenuTrigger>
 
@@ -65,7 +65,7 @@ const PureChatItem = ({
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer">
               <ShareIcon />
-              <span>Share</span>
+              <span>分享</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
@@ -77,7 +77,7 @@ const PureChatItem = ({
                 >
                   <div className="flex flex-row items-center gap-2">
                     <LockIcon size={12} />
-                    <span>Private</span>
+                    <span>私密</span>
                   </div>
                   {visibilityType === "private" ? (
                     <CheckCircleFillIcon />
@@ -91,7 +91,7 @@ const PureChatItem = ({
                 >
                   <div className="flex flex-row items-center gap-2">
                     <GlobeIcon />
-                    <span>Public</span>
+                    <span>公开</span>
                   </div>
                   {visibilityType === "public" ? <CheckCircleFillIcon /> : null}
                 </DropdownMenuItem>
@@ -104,7 +104,7 @@ const PureChatItem = ({
             onSelect={() => onDelete(chat.id)}
           >
             <TrashIcon />
-            <span>Delete</span>
+            <span>删除</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

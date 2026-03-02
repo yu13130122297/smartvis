@@ -69,7 +69,7 @@ type Metadata = {
 export const codeArtifact = new Artifact<"code", Metadata>({
   kind: "code",
   description:
-    "Useful for code generation; Code execution is only available for python code.",
+    "适用于代码生成；仅支持 Python 代码执行。",
   initialize: ({ setMetadata }) => {
     setMetadata({
       outputs: [],
@@ -114,8 +114,8 @@ export const codeArtifact = new Artifact<"code", Metadata>({
   actions: [
     {
       icon: <PlayIcon size={18} />,
-      label: "Run",
-      description: "Execute code",
+      label: "运行",
+      description: "执行代码",
       onClick: async ({ content, setMetadata }) => {
         const runId = generateUUID();
         const outputContent: ConsoleOutputContent[] = [];
@@ -210,7 +210,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <UndoIcon size={18} />,
-      description: "View Previous version",
+      description: "查看上一版本",
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("prev");
       },
@@ -224,7 +224,7 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <RedoIcon size={18} />,
-      description: "View Next version",
+      description: "查看下一版本",
       onClick: ({ handleVersionChange }) => {
         handleVersionChange("next");
       },
@@ -238,24 +238,24 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <CopyIcon size={18} />,
-      description: "Copy code to clipboard",
+      description: "复制代码到剪贴板",
       onClick: ({ content }) => {
         navigator.clipboard.writeText(content);
-        toast.success("Copied to clipboard!");
+        toast.success("已复制到剪贴板！");
       },
     },
   ],
   toolbar: [
     {
       icon: <MessageIcon />,
-      description: "Add comments",
+      description: "添加注释",
       onClick: ({ sendMessage }) => {
         sendMessage({
           role: "user",
           parts: [
             {
               type: "text",
-              text: "Add comments to the code snippet for understanding",
+              text: "为代码片段添加注释以便理解",
             },
           ],
         });
@@ -263,14 +263,14 @@ export const codeArtifact = new Artifact<"code", Metadata>({
     },
     {
       icon: <LogsIcon />,
-      description: "Add logs",
+      description: "添加日志",
       onClick: ({ sendMessage }) => {
         sendMessage({
           role: "user",
           parts: [
             {
               type: "text",
-              text: "Add logs to the code snippet for debugging",
+              text: "为代码片段添加日志以便调试",
             },
           ],
         });
